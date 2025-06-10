@@ -1,0 +1,120 @@
+const { useState } = React;
+
+function App() {
+  const [session, setSession] = useState(null);
+  const [formData, setFormData] = useState({
+    calle: "",
+    numeroCasa: "",
+    nombre: "",
+    solicitudes: "",
+  });
+  const [registros, setRegistros] = useState([]);
+  const [adminView, setAdminView] = useState(false);
+  const [adminCredentials, setAdminCredentials] = useState({ id: "", pin: "" });
+
+  const admins = [{ id: "USR78241XK", pin: "4397" }];
+
+  const handleLogin = () => {
+    const nombre = prompt("Nombre completo");
+    const pastoral = prompt("Pastoral a la que pertenece");
+    if (nombre && pastoral) {
+      setSession({ nombre, pastoral });
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = () => {
+    if (!session) return alert("Inicia sesión primero");
+    const entry = {
+      ...formData,
+      id: Date.now(),
+      pastoral: session.pastoral,
+    };
+    setRegistros([...registros, entry]);
+    setFormData({
+      calle: "",
+      numeroCasa: "",
+      nombre: "",
+      solicitudes: "",
+    });
+  };
+
+  const handleAdminLogin = () => {
+    const isAdmin = admins.find(
+      (a) => a.id === adminCredentials.id && a.pin === adminCredentials.pin
+    );
+    if (isAdmin) {
+      setAdminView(true);
+    } else {
+      alert("ID o PIN incorrecto");
+    }
+  };
+
+  return React.createElement("div", { style: { padding: 20 } },
+    !session && React.createElement("button", { onClick: handleLogin }, "Iniciar Sesión"),
+
+    session && React.createElement("div", null,
+      React.createElement("h2", null, "Formulario de Censo"),
+      React.createElement("input", {
+        placeholder: "Calle",
+        name: "calle",
+        value: formData.calle,
+        onChange: handleChange,
+      }),
+      React.createElement("input", {
+        placeholder: "Número de casa",
+        name: "numeroCasa",
+        value: formData.numeroCasa,
+        onChange: handleChange,
+      }),
+      React.createElement("input", {
+        placeholder: "Nombre de la persona o familia",
+        name: "nombre",
+        value: formData.nombre,
+        onChange: handleChange,
+      }),
+      React.createElement("textarea", {
+        placeholder: "Solicitudes especiales",
+        name: "solicitudes",
+        value: formData.solicitudes,
+        onChange: handleChange,
+      }),
+      React.createElement("button", { onClick: handleSubmit }, "Guardar Registro")
+    ),
+
+    React.createElement("div", { style: { marginTop: 40 } },
+      React.createElement("h2", null, "Vista de Administrador"),
+
+      !adminView ? React.createElement("div", null,
+        React.createElement("input", {
+          placeholder: "ID de administrador",
+          value: adminCredentials.id,
+          onChange: (e) =>
+            setAdminCredentials({ ...adminCredentials, id: e.target.value }),
+        }),
+        React.createElement("input", {
+          placeholder: "PIN",
+          type: "password",
+          value: adminCredentials.pin,
+          onChange: (e) =>
+            setAdminCredentials({ ...adminCredentials, pin: e.target.value }),
+        }),
+        React.createElement("button", { onClick: handleAdminLogin }, "Acceder")
+      ) : React.createElement("div", null,
+        React.createElement("h3", null, "Registros en tiempo real:"),
+        React.createElement("ul", null,
+          registros.map((r) =>
+            React.createElement("li", { key: r.id },
+              React.createElement("strong", null, `${r.nombre} – ${r.calle} #${r.numeroCasa}`),
+              React.createElement("div", null, r.solicitudes),
+              React.createElement("small", null, `Pastoral: ${r.pastoral}`)
+            )
+          )
+        )
+      )
+    )
+  );
+}
